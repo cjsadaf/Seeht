@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#F6F5F1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Cadence — Personal Attendance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F6F5F1;
+      --surface: #FFFFFF;
+      --surface-subtle: #F0EFEA;
+      --surface-hover: #FAF9F6;
+      --border: rgba(20, 24, 31, 0.08);
+      --border-strong: rgba(20, 24, 31, 0.14);
+      --text: #16191D;
+      --text-muted: #5F6773;
+      --text-soft: #8A93A0;
+
+      --emerald: #0D9F6E;
+      --emerald-bg: #E7F7F1;
+      --emerald-border: rgba(13, 159, 110, 0.25);
+
+      --amber: #D97706;
+      --amber-bg: #FEF4E4;
+      --amber-border: rgba(217, 119, 6, 0.26);
+
+      --coral: #E11D48;
+      --coral-bg: #FCE9EE;
+      --coral-border: rgba(225, 29, 72, 0.24);
+
+      --indigo: #4F46E5;
+      --indigo-bg: #EEF2FF;
+      --indigo-border: rgba(79, 70, 229, 0.22);
+
+      --accent: #1E293B;
+      --accent-hover: #0F172A;
+
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 20px 44px -8px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.05);
+
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --font-sans: 'Plus Jakarta Sans', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font-family: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 16px 16px 90px;
+    }
+    @media (min-width: 960px) { .app-shell { padding: 22px 28px 36px; } }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 13px;
+      background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+      color: #fff; display: grid; place-items: center;
+      box-shadow: var(--shadow-sm); flex-shrink: 0;
+    }
+    .brand-title { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+    .brand-subtitle { font-size: 0.77rem; color: var(--text-muted); font-weight: 500; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Language Pill */
+    .lang-toggle {
+      display: inline-flex; align-items: center; padding: 3px;
+      border-radius: 999px; background: var(--surface);
+      border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+    }
+    .lang-opt {
+      padding: 5px 10px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
+      transition: all 0.16s ease;
+    }
+    .lang-opt.active { background: var(--accent); color: #fff; }
+
+    /* Sync Pill */
+    .sync-pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 12px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm); font-size: 0.78rem; font-weight: 600;
+      color: var(--text-muted); transition: all 0.2s ease;
+    }
+    .sync-pill:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .sync-dot.synced { background: var(--emerald); box-shadow: 0 0 0 3px var(--emerald-bg); }
+    .sync-dot.syncing { background: var(--indigo); animation: pulse 1s infinite; }
+    .sync-dot.local { background: var(--amber); box-shadow: 0 0 0 3px var(--amber-bg); }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 9px 14px; border-radius: 12px; font-size: 0.84rem; font-weight: 600;
+      transition: all 0.16s ease; white-space: nowrap;
+    }
+    .btn-surface { background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); color: var(--text); }
+    .btn-surface:hover { background: var(--surface-hover); border-color: var(--border-strong); transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16); }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-danger { background: var(--coral-bg); color: var(--coral); border: 1px solid var(--coral-border); }
+    .btn-danger:hover { background: #FAD5DF; }
+    .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 11px; }
+
+    .avatar-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 10px 4px 4px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm); font-size: 0.82rem; font-weight: 600;
+    }
+    .avatar-circle {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, #4F46E5, #0D9F6E);
+      color: #fff; display: grid; place-items: center; font-size: 0.75rem; font-weight: 700;
+    }
+
+    /* Summary Strip */
+    .summary-strip {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;
+    }
+    @media (min-width: 720px) { .summary-strip { grid-template-columns: repeat(4, 1fr); gap: 14px; } }
+    .summary-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 13px 15px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 3px;
+    }
+    .summary-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-soft); }
+    .summary-value { font-size: 1.32rem; font-weight: 800; letter-spacing: -0.02em; font-family: var(--font-mono); }
+    .summary-sub { font-size: 0.76rem; color: var(--text-muted); }
+
+    /* Quick Today's Classes */
+    .today-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+      margin-bottom: 18px; overflow: hidden;
+    }
+    .today-header {
+      padding: 13px 18px; display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .today-header.collapsed { border-bottom: none; }
+    .today-title-wrap { display: flex; align-items: center; gap: 10px; }
+    .today-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: var(--indigo-bg); color: var(--indigo);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .today-count-pill {
+      padding: 4px 10px; border-radius: 999px; background: var(--surface-subtle);
+      font-size: 0.74rem; font-weight: 700; color: var(--text-muted); font-family: var(--font-mono);
+    }
+    .today-grid {
+      padding: 14px 16px; display: grid; grid-template-columns: 1fr; gap: 10px;
+    }
+    @media (min-width: 660px) { .today-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1100px) { .today-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .today-card {
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 15px;
+      padding: 12px; display: flex; flex-direction: column; gap: 10px; transition: all 0.15s ease;
+    }
+    .today-card.marked-present { background: #F2FBF7; border-color: var(--emerald-border); }
+    .today-card.marked-absent { background: #FEF4F6; border-color: var(--coral-border); }
+    .today-card.marked-partial { background: #FFFAF0; border-color: var(--amber-border); }
+    .today-card.marked-multi { background: #F3F5FF; border-color: var(--indigo-border); }
+
+    .today-card-top {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; cursor: pointer;
+    }
+    .today-subj-title {
+      font-size: 0.87rem; font-weight: 700; line-height: 1.25;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .today-pct-tag {
+      font-family: var(--font-mono); font-size: 0.73rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 99px; background: var(--surface);
+      border: 1px solid var(--border); flex-shrink: 0;
+    }
+    .today-tap-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .tap-btn {
+      padding: 7px 3px; border-radius: 9px; background: var(--surface);
+      border: 1.5px solid var(--border); font-size: 0.72rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 3px; transition: all 0.13s ease;
+    }
+    .tap-btn:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+    .tap-btn.active-p { background: var(--emerald); border-color: var(--emerald); color: #fff; }
+    .tap-btn.active-a { background: var(--coral); border-color: var(--coral); color: #fff; }
+    .tap-btn.active-h { background: var(--amber); border-color: var(--amber); color: #fff; }
+    .tap-btn.active-m { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+
+    /* Workspace */
+    .workspace { display: grid; grid-template-columns: 1fr; gap: 20px; flex: 1; align-items: start; }
+    @media (min-width: 960px) { .workspace { grid-template-columns: 420px 1fr; gap: 22px; } }
+
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-md); overflow: hidden;
+    }
+    .panel-header {
+      padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .panel-title { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.015em; }
+    .panel-subtitle { font-size: 0.77rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Subject List */
+    .subject-list { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .subject-card {
+      position: relative; display: flex; align-items: center; gap: 12px; padding: 13px;
+      border-radius: var(--radius-md); background: var(--surface);
+      border: 1.5px solid var(--border); transition: all 0.18s ease; cursor: pointer;
+    }
+    .subject-card:hover { border-color: var(--border-strong); background: var(--surface-hover); transform: translateY(-1px); }
+    .subject-card.active { border-color: var(--accent); background: #FAF9F5; box-shadow: 0 4px 16px rgba(15,23,42,0.06); }
+    .subject-card.dragging { opacity: 0.45; transform: scale(0.98); }
+    .subject-card.drag-over { border-color: var(--indigo); border-style: dashed; background: var(--indigo-bg); }
+    .drag-handle { color: var(--text-soft); cursor: grab; padding: 4px 2px; display: flex; align-items: center; flex-shrink: 0; }
+
+    /* Progress Ring */
+    .ring-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; display: grid; place-items: center; }
+    .ring-wrap svg { transform: rotate(-90deg); width: 56px; height: 56px; }
+    .ring-bg { fill: none; stroke: var(--surface-subtle); stroke-width: 5.5; }
+    .ring-fg { fill: none; stroke-width: 5.5; stroke-linecap: round; transition: stroke-dashoffset 0.5s cubic-bezier(0.22,1,0.36,1), stroke 0.25s ease; }
+    .ring-text { position: absolute; font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; }
+
+    .subject-info { flex: 1; min-width: 0; }
+    .subject-name-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+    .subject-color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .subject-name { font-size: 0.93rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .subject-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .status-badge {
+      display: inline-flex; align-items: center; margin-top: 6px;
+      padding: 3px 8px; border-radius: 999px; font-size: 0.71rem; font-weight: 600;
+    }
+    .status-safe { background: var(--emerald-bg); color: var(--emerald); }
+    .status-near { background: var(--amber-bg); color: var(--amber); }
+    .status-low { background: var(--coral-bg); color: var(--coral); }
+
+    .subject-actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .reorder-row { display: flex; gap: 2px; }
+    .mini-btn {
+      width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+      color: var(--text-soft); transition: all 0.14s ease;
+    }
+    .mini-btn:hover { background: var(--surface-subtle); color: var(--text); }
+    .mini-btn.danger:hover { background: var(--coral-bg); color: var(--coral); }
+
+    @media (max-width: 959px) {
+      .workspace.mobile-detail .subjects-panel { display: none; }
+      .workspace:not(.mobile-detail) .calendar-panel { display: none; }
+    }
+    .mobile-back-btn { display: inline-flex; }
+    @media (min-width: 960px) { .mobile-back-btn { display: none; } }
+
+    /* Calendar Panel */
+    .calendar-head { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
+    .calendar-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .subject-hero { display: flex; align-items: center; gap: 12px; }
+    .subject-hero-badge { width: 10px; height: 36px; border-radius: 99px; flex-shrink: 0; }
+    .subject-hero h2 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .subject-hero-sub { font-size: 0.79rem; color: var(--text-muted); margin-top: 2px; }
+
+    .subject-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media (min-width: 600px) { .subject-stats-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; } }
+    .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: 13px; padding: 10px 12px; }
+    .stat-box-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-soft); }
+    .stat-box-val { font-size: 1.08rem; font-weight: 800; font-family: var(--font-mono); margin-top: 2px; }
+
+    .insight-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 14px; border-radius: 13px; font-size: 0.82rem; font-weight: 600; flex-wrap: wrap;
+    }
+    .insight-banner.safe { background: var(--emerald-bg); color: #087852; border: 1px solid var(--emerald-border); }
+    .insight-banner.near { background: var(--amber-bg); color: #9A5304; border: 1px solid var(--amber-border); }
+    .insight-banner.low { background: var(--coral-bg); color: #B41238; border: 1px solid var(--coral-border); }
+
+    .calendar-body { padding: 18px 20px 22px; }
+    .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+    .month-label { font-size: 1.04rem; font-weight: 700; }
+    .month-controls { display: flex; align-items: center; gap: 6px; }
+    .legend-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 12px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+
+    .weekdays-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+    .weekday-cell { text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-soft); padding: 4px 0; }
+    .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+
+    .day-cell {
+      position: relative; min-height: 60px; border-radius: 13px; border: 1.5px solid var(--border);
+      background: var(--surface); padding: 6px; display: flex; flex-direction: column;
+      justify-content: space-between; transition: all 0.14s ease; text-align: left;
+    }
+    @media (min-width: 600px) { .day-cell { min-height: 72px; padding: 8px; } }
+    .day-cell.empty { background: transparent; border-color: transparent; pointer-events: none; }
+    .day-cell:not(.empty):hover { border-color: var(--border-strong); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .day-cell.today { border-color: var(--accent); }
+    .day-cell.selected { box-shadow: 0 0 0 2.5px var(--indigo); border-color: var(--indigo); }
+    .day-cell.status-present { background: #F1FBF7; border-color: var(--emerald-border); }
+    .day-cell.status-absent { background: #FEF3F6; border-color: var(--coral-border); }
+    .day-cell.status-partial { background: #FFF9EE; border-color: var(--amber-border); }
+    .day-cell.status-multi { background: #F2F4FF; border-color: var(--indigo-border); }
+
+    .day-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+    .day-num { font-size: 0.79rem; font-weight: 700; font-family: var(--font-mono); }
+    .day-cell.today .day-num { background: var(--accent); color: #fff; padding: 1px 6px; border-radius: 99px; font-size: 0.7rem; }
+    .note-pin {
+      width: 18px; height: 18px; border-radius: 6px; background: rgba(15,23,42,0.07);
+      color: var(--text-muted); display: grid; place-items: center; flex-shrink: 0;
+    }
+    .day-badge {
+      display: inline-flex; align-items: center; align-self: flex-start;
+      padding: 2px 6px; border-radius: 7px; font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono);
+    }
+    .badge-present { background: var(--emerald-bg); color: var(--emerald); }
+    .badge-absent { background: var(--coral-bg); color: var(--coral); }
+    .badge-partial { background: var(--amber-bg); color: var(--amber); }
+    .badge-multi { background: var(--indigo-bg); color: var(--indigo); }
+
+    /* Day Inspector */
+    .day-inspector {
+      margin-top: 18px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 15px; animation: fadeSlideUp 0.2s ease;
+    }
+    @keyframes fadeSlideUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .inspector-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .inspector-date { font-size: 0.94rem; font-weight: 700; }
+
+    .quick-mark-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+    @media (min-width: 560px) { .quick-mark-row { grid-template-columns: repeat(5, 1fr); } }
+    .mark-chip {
+      padding: 9px 8px; border-radius: 11px; border: 1.5px solid var(--border);
+      background: var(--surface); font-size: 0.77rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.14s ease;
+    }
+    .mark-chip:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+    .mark-chip.active-present { background: var(--emerald-bg); border-color: var(--emerald); color: var(--emerald); }
+    .mark-chip.active-absent { background: var(--coral-bg); border-color: var(--coral); color: var(--coral); }
+    .mark-chip.active-partial { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+    .mark-chip.active-multi { background: var(--indigo-bg); border-color: var(--indigo); color: var(--indigo); }
+
+    .custom-mark-box {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.8rem;
+    }
+    .custom-num-input {
+      width: 64px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border-strong);
+      font-family: var(--font-mono); font-weight: 600; font-size: 0.84rem; background: var(--bg); text-align: center;
+    }
+
+    .note-box { display: flex; flex-direction: column; gap: 8px; }
+    .note-input-row { display: flex; gap: 8px; align-items: stretch; }
+    .input-field {
+      width: 100%; padding: 10px 12px; border-radius: 11px; border: 1.5px solid var(--border);
+      background: var(--surface); font-size: 0.85rem; outline: none; transition: border-color 0.15s ease;
+    }
+    .input-field:focus { border-color: var(--accent); }
+
+    .month-notes { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+    .month-notes-title { font-size: 0.77rem; font-weight: 700; text-transform: uppercase; color: var(--text-soft); margin-bottom: 8px; }
+    .note-list { display: flex; flex-direction: column; gap: 6px; }
+    .note-list-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 8px 11px; background: var(--bg); border-radius: 10px; font-size: 0.82rem; cursor: pointer;
+    }
+    .note-list-item:hover { background: var(--surface-subtle); }
+    .note-date-tag { font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+
+    /* FAB */
+    .fab-add {
+      position: fixed; right: 20px; bottom: 22px; width: 54px; height: 54px; border-radius: 18px;
+      background: var(--accent); color: #fff; display: grid; place-items: center;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28); z-index: 40;
+    }
+    @media (min-width: 960px) { .fab-add { display: none; } }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100;
+    }
+    .modal-backdrop.open { display: flex; animation: fadeIn 0.15s ease; }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    .modal-card {
+      width: 100%; max-width: 440px; background: var(--surface); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg); border: 1px solid var(--border); overflow: hidden;
+    }
+    .modal-header { padding: 17px 20px 13px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 1.03rem; font-weight: 700; }
+    .modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto; }
+    .modal-footer { padding: 13px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; background: var(--surface-hover); }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+
+    .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+    .color-swatch { width: 28px; height: 28px; border-radius: 99px; border: 2.5px solid transparent; }
+    .color-swatch.selected { transform: scale(1.14); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent); }
+
+    .google-btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      padding: 11px 16px; border-radius: 12px; background: #fff;
+      border: 1.5px solid var(--border-strong); font-weight: 700; font-size: 0.87rem; box-shadow: var(--shadow-sm);
+    }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 14px; border-radius: 13px; background: var(--bg); border: 1px solid var(--border);
+    }
+    .switch { position: relative; width: 44px; height: 24px; border-radius: 99px; background: #CBD5E1; transition: background 0.2s ease; flex-shrink: 0; }
+    .switch.on { background: var(--emerald); }
+    .switch-thumb {
+      position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s ease;
+    }
+    .switch.on .switch-thumb { transform: translateX(20px); }
+
+    /* PIN Overlay */
+    .pin-overlay {
+      position: fixed; inset: 0; background: var(--bg); z-index: 200;
+      display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+    }
+    .pin-overlay.open { display: flex; }
+    .pin-card {
+      width: 100%; max-width: 340px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 26px; padding: 28px 24px; box-shadow: var(--shadow-lg); text-align: center;
+    }
+    .pin-dots { display: flex; justify-content: center; gap: 14px; margin: 20px 0 24px; }
+    .pin-dots.shake { animation: shake 0.35s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-7px)} 40%,80%{transform:translateX(7px)} }
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border-strong); }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); transform: scale(1.1); }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .key-btn {
+      height: 54px; border-radius: 15px; background: var(--bg); border: 1px solid var(--border);
+      font-size: 1.15rem; font-weight: 700; font-family: var(--font-mono);
+    }
+    .key-btn:active { transform: scale(0.95); }
+
+    .empty-state { padding: 36px 20px; text-align: center; color: var(--text-muted); }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #16191D; color: #fff; padding: 10px 16px; border-radius: 12px;
+      font-size: 0.82rem; font-weight: 600; box-shadow: var(--shadow-lg);
+      opacity: 0; pointer-events: none; transition: all 0.22s ease; z-index: 300;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <!-- PIN Lock Screen -->
+  <div id="pinOverlay" class="pin-overlay">
+    <div class="pin-card">
+      <div class="brand-mark" style="margin: 0 auto 14px;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2 id="pinTitle" style="font-size: 1.15rem; font-weight: 800;">Privacy Lock</h2>
+      <p id="pinPromptText" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Enter your 4-digit PIN</p>
+      <div id="pinDots" class="pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="keypad">
+        <button class="key-btn" data-key="1">1</button>
+        <button class="key-btn" data-key="2">2</button>
+        <button class="key-btn" data-key="3">3</button>
+        <button class="key-btn" data-key="4">4</button>
+        <button class="key-btn" data-key="5">5</button>
+        <button class="key-btn" data-key="6">6</button>
+        <button class="key-btn" data-key="7">7</button>
+        <button class="key-btn" data-key="8">8</button>
+        <button class="key-btn" data-key="9">9</button>
+        <button id="pinClearBtn" class="key-btn" data-key="clear" style="font-size:0.78rem;font-family:var(--font-sans);">Clear</button>
+        <button class="key-btn" data-key="0">0</button>
+        <button class="key-btn" data-key="back">⌫</button>
+      </div>
+      <button id="forgotPinBtn" style="margin-top: 16px; font-size: 0.76rem; color: var(--text-soft); text-decoration: underline;">
+        Forgot PIN? Remove PIN lock
+      </button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            <path d="m9 10 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Cadence</div>
+          <div id="brandSubtitle" class="brand-subtitle">Personal Attendance Register</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button id="langEnBtn" class="lang-opt active" onclick="setLanguage('en')">EN</button>
+          <button id="langBnBtn" class="lang-opt" onclick="setLanguage('bn')">বাংলা</button>
+        </div>
+
+        <button id="syncStatusBtn" class="sync-pill">
+          <span id="syncDot" class="sync-dot local"></span>
+          <span id="syncText">Saved Locally</span>
+        </button>
+
+        <button id="lockNowBtn" class="btn btn-surface btn-icon" style="display:none;">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+
+        <button id="settingsBtn" class="btn btn-surface">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.77 1.02 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span id="targetBadge">Target 75%</span>
+        </button>
+
+        <button id="accountBtn" class="avatar-btn">
+          <div id="avatarCircle" class="avatar-circle">G</div>
+          <span id="accountLabel">Sign in</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Summary Cards -->
+    <section id="summaryStrip" class="summary-strip"></section>
+
+    <!-- Quick Today's Classes View -->
+    <section id="todayPanel" class="today-panel"></section>
+
+    <!-- Workspace -->
+    <main id="workspace" class="workspace">
+      <section class="panel subjects-panel">
+        <div class="panel-header">
+          <div>
+            <h1 id="subjectsTitle" class="panel-title">My Subjects</h1>
+            <p id="subjectsSubtitle" class="panel-subtitle">Drag or use arrows to reorder • Tap to open calendar</p>
+          </div>
+          <button id="addSubjectBtn" class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            <span id="addBtnLabel">Add</span>
+          </button>
+        </div>
+        <div id="subjectList" class="subject-list"></div>
+      </section>
+
+      <section id="calendarPanel" class="panel calendar-panel"></section>
+    </main>
+  </div>
+
+  <!-- Mobile FAB -->
+  <button id="fabAddBtn" class="fab-add" title="Add Subject">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <!-- Add / Edit Subject Modal -->
+  <div id="subjectModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="subjectModalTitle" class="modal-title">Add Subject</h3>
+        <button class="mini-btn" onclick="closeModal('subjectModal')">✕</button>
+      </div>
+      <form id="subjectForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label id="lblSubjName" class="form-label">Subject Name *</label>
+            <input id="subjNameInput" class="input-field" type="text" required maxlength="50" />
+          </div>
+          <div class="form-group">
+            <label id="lblSubjCode" class="form-label">Course Code or Schedule (optional)</label>
+            <input id="subjCodeInput" class="input-field" type="text" maxlength="40" />
+          </div>
+          <div class="form-group">
+            <label id="lblSubjTarget" class="form-label">Subject Target %</label>
+            <input id="subjTargetInput" class="input-field" type="number" min="1" max="100" />
+          </div>
+          <div class="form-group">
+            <label id="lblAccentColor" class="form-label">Accent Color</label>
+            <div id="colorSwatches" class="color-swatches"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="subjCancelBtn" type="button" class="btn btn-surface" onclick="closeModal('subjectModal')">Cancel</button>
+          <button id="subjSaveBtn" type="submit" class="btn btn-primary">Save Subject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="settingsModalTitle" class="modal-title">Personal Preferences & Privacy</h3>
+        <button class="mini-btn" onclick="closeModal('settingsModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label id="lblGlobalTarget" class="form-label">Personal Target Attendance (%)</label>
+          <input id="globalTargetInput" class="input-field" type="number" min="1" max="100" value="75" />
+          <span id="globalTargetHint" style="font-size:0.75rem;color:var(--text-muted);"></span>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div id="lblPinLock" style="font-size:0.86rem;font-weight:700;">PIN Privacy Lock</div>
+            <div id="pinStatusSub" style="font-size:0.75rem;color:var(--text-muted);"></div>
+          </div>
+          <button id="togglePinBtn" class="switch" type="button"><div class="switch-thumb"></div></button>
+        </div>
+
+        <div id="pinSetupBox" style="display:none; background:var(--bg); padding:12px; border-radius:12px; border:1px solid var(--border);">
+          <label id="lblSetPin" class="form-label" style="display:block; margin-bottom:6px;">Set 4-Digit PIN</label>
+          <div style="display:flex; gap:8px;">
+            <input id="newPinInput" class="input-field" type="password" inputmode="numeric" maxlength="4" placeholder="1234" style="font-family:var(--font-mono);" />
+            <button id="savePinBtn" type="button" class="btn btn-primary">Save PIN</button>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div id="lblOfflineSim" style="font-size:0.86rem;font-weight:700;">Simulate Offline Mode</div>
+            <div id="lblOfflineSub" style="font-size:0.75rem;color:var(--text-muted);"></div>
+          </div>
+          <button id="toggleOfflineBtn" class="switch" type="button"><div class="switch-thumb"></div></button>
+        </div>
+
+        <div style="border-top:1px solid var(--border); padding-top:12px; display:flex; flex-direction:column; gap:8px;">
+          <div id="lblBackup" class="form-label">Data & Backup</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="exportDataBtn" type="button" class="btn btn-surface" style="flex:1;">Export JSON</button>
+            <button id="resetSampleBtn" type="button" class="btn btn-surface" style="flex:1;">Load Sample Data</button>
+          </div>
+          <button id="clearAllBtn" type="button" class="btn btn-danger">Clear All Subjects & Logs</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gmail Account Modal -->
+  <div id="accountModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="accountModalTitle" class="modal-title">Gmail Cloud Sync</h3>
+        <button class="mini-btn" onclick="closeModal('accountModal')">✕</button>
+      </div>
+      <div class="modal-body" id="accountModalBody"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // =========================================================================
+    // Translations (English & Bangla)
+    // =========================================================================
+    const I18N = {
+      en: {
+        brandSub: 'Personal Attendance Register',
+        savedLocal: 'Saved Locally',
+        offlineLocal: 'Offline • Saved Locally',
+        syncing: 'Syncing...',
+        syncedGmail: 'Synced with Gmail',
+        targetBadge: 'Target',
+        signIn: 'Gmail Sign in',
+        overallAvg: 'Overall Average',
+        classesCount: 'classes',
+        activeSubjects: 'Active Subjects',
+        onTargetCount: 'on or above target',
+        needsAttention: 'Needs Attention',
+        allSafe: 'All subjects above target',
+        belowTarget: 'Below target',
+        today: 'Today',
+        todaysClasses: "Today's Classes",
+        todaysClassesSub: 'One-tap attendance for today',
+        marked: 'marked',
+        hide: 'Hide',
+        show: 'Show',
+        tapP: 'P (1)',
+        tapA: 'A (0)',
+        tapH: '0.5',
+        tapM: '2×',
+        mySubjects: 'My Subjects',
+        subjectsSub: 'Drag or use arrows to reorder • Tap to open calendar',
+        add: 'Add',
+        noSubjects: 'No subjects yet',
+        noSubjectsSub: 'Add your first class to start tracking attendance and daily notes.',
+        addFirstSubj: '+ Add First Subject',
+        selectSubjTitle: 'Select a subject',
+        selectSubjSub: 'Choose any subject on the left to view its monthly calendar and daily notes.',
+        editSubject: 'Edit Subject',
+        overallPct: 'Overall %',
+        present: 'Present',
+        absent: 'Absent',
+        partialExtra: 'Partial / Extra',
+        attendedLabel: 'attended',
+        todayBtn: 'Today',
+        legendP: 'Present (1)',
+        legendA: 'Absent (0)',
+        legendH: 'Partial (0.5)',
+        legendM: 'Multiple (2×)',
+        selectedDay: 'Selected Day',
+        customCount: 'Custom Count',
+        hideCustom: 'Hide Custom',
+        clearMark: 'Clear Mark',
+        btnP: '✓ Present (1)',
+        btnA: '✕ Absent (0)',
+        btnH: '◐ Half (0.5)',
+        btnM: '✦ Double (2)',
+        btn1of2: '1 of 2',
+        attendedWord: 'Attended',
+        outOfWord: 'out of',
+        classesWord: 'class(es)',
+        apply: 'Apply',
+        dailyNoteLbl: 'Daily Note (e.g., Sick Day, Quiz, Class cancelled)',
+        dailyNotePh: 'Add a short note for this date...',
+        save: 'Save',
+        notesIn: 'Notes in',
+        noClassesYet: 'No classes logged yet — tap a date to begin',
+        canSkip: (n) => `You can skip ${n} class${n > 1 ? 'es' : ''} safely`,
+        onEdge: 'On target — attend the next class to stay safe',
+        unrecoverable: '100% target unreachable after an absence',
+        needClasses: (n, t) => `Attend next ${n} class${n > 1 ? 'es' : ''} to reach ${t}%`,
+        months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+        weekdays: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+        addNewSubj: 'Add New Subject',
+        subjNameLbl: 'Subject Name *',
+        subjNamePh: 'e.g., Linear Algebra',
+        subjCodeLbl: 'Course Code or Schedule (optional)',
+        subjCodePh: 'e.g., MATH 204 • Mon/Wed/Fri',
+        subjTargetLbl: 'Subject Target % (optional)',
+        globalDefault: 'Global default',
+        accentColor: 'Accent Color',
+        cancel: 'Cancel',
+        saveSubj: 'Save Subject',
+        prefTitle: 'Personal Preferences & Privacy',
+        globalTargetLbl: 'Personal Target Attendance (%)',
+        globalTargetHint: 'Used to calculate safe skips & classes needed across subjects.',
+        pinLockLbl: 'PIN Privacy Lock',
+        pinLockSub: 'Protect your register with a 4-digit PIN',
+        setPinLbl: 'Set 4-Digit PIN',
+        savePin: 'Save PIN',
+        offlineSimLbl: 'Simulate Offline Mode',
+        offlineSimSub: 'Test local storage fallback & offline sync status',
+        backupLbl: 'Data & Backup',
+        exportJson: 'Export JSON',
+        loadSample: 'Load Sample Data',
+        clearAll: 'Clear All Subjects & Logs',
+        done: 'Done',
+        gmailTitle: 'Gmail Cloud Sync',
+        gmailIntro: 'Sign in with your Gmail address to keep your subjects, attendance logs, and daily notes synced with offline fallback.',
+        gmailEmailLbl: 'Gmail Address',
+        gmailNameLbl: 'Display Name',
+        continueGmail: 'Continue with Gmail',
+        statusLbl: 'Status',
+        gmailSyncedDesc: 'Synced with Gmail Cloud Profile',
+        gmailOfflineDesc: 'Offline — Local Storage Fallback Active',
+        syncNow: 'Sync Now',
+        signOut: 'Sign Out',
+        pinTitle: 'Privacy Lock',
+        pinPrompt: 'Enter your 4-digit PIN to view your register',
+        clear: 'Clear',
+        forgotPin: 'Forgot PIN? Remove PIN lock',
+        confirmDelSubj: (n) => `Delete "${n}" and all its attendance logs and notes?`,
+        confirmReset: 'Replace current subjects and logs with sample semester data?',
+        confirmClearAll: 'Clear ALL subjects, attendance logs, and notes? This cannot be undone.',
+        confirmRemovePin: 'Remove PIN lock protection on this browser?'
+      },
+      bn: {
+        brandSub: 'ব্যক্তিগত উপস্থিতি খাতা',
+        savedLocal: 'লোকাল স্টোরেজে সেভ',
+        offlineLocal: 'অফলাইন • লোকালে সেভ',
+        syncing: 'সিঙ্ক হচ্ছে...',
+        syncedGmail: 'Gmail-এ সিঙ্ক হয়েছে',
+        targetBadge: 'টার্গেট',
+        signIn: 'Gmail লগইন',
+        overallAvg: 'মোট গড় উপস্থিতি',
+        classesCount: 'ক্লাস',
+        activeSubjects: 'মোট বিষয়',
+        onTargetCount: 'টার্গেটের ওপরে আছে',
+        needsAttention: 'মনোযোগ প্রয়োজন',
+        allSafe: 'সব বিষয় নিরাপদ সীমায়',
+        belowTarget: 'টার্গেটের নিচে',
+        today: 'আজ',
+        todaysClasses: 'আজকের ক্লাস',
+        todaysClassesSub: 'এক ট্যাপেই আজকের উপস্থিতি দিন',
+        marked: 'মার্ক হয়েছে',
+        hide: 'লুকান',
+        show: 'দেখুন',
+        tapP: 'উপ.',
+        tapA: 'অনু.',
+        tapH: '০.৫',
+        tapM: '২×',
+        mySubjects: 'আমার বিষয়সমূহ',
+        subjectsSub: 'টেনে বা তীর চিহ্ন দিয়ে সাজান • ক্যালেন্ডার দেখতে ট্যাপ করুন',
+        add: 'যোগ',
+        noSubjects: 'এখনো কোনো বিষয় নেই',
+        noSubjectsSub: 'উপস্থিতি ও নোট রাখা শুরু করতে প্রথম বিষয় যোগ করুন।',
+        addFirstSubj: '+ প্রথম বিষয় যোগ করুন',
+        selectSubjTitle: 'একটি বিষয় বেছে নিন',
+        selectSubjSub: 'মাসিক ক্যালেন্ডার ও প্রতিদিনের নোট দেখতে বাম পাশ থেকে কোনো বিষয় নির্বাচন করুন।',
+        editSubject: 'এডিট করুন',
+        overallPct: 'মোট %',
+        present: 'উপস্থিত',
+        absent: 'অনুপস্থিত',
+        partialExtra: 'আংশিক / বাড়তি',
+        attendedLabel: 'উপস্থিতি',
+        todayBtn: 'আজ',
+        legendP: 'উপস্থিত (1)',
+        legendA: 'অনুপস্থিত (0)',
+        legendH: 'আংশিক (0.5)',
+        legendM: 'একাধিক (2×)',
+        selectedDay: 'নির্বাচিত দিন',
+        customCount: 'কাস্টম সংখ্যা',
+        hideCustom: 'কাস্টম লুকান',
+        clearMark: 'মুছে ফেলুন',
+        btnP: '✓ উপস্থিত (1)',
+        btnA: '✕ অনুপস্থিত (0)',
+        btnH: '◐ অর্ধেক (0.5)',
+        btnM: '✦ ডাবল (2)',
+        btn1of2: '২-এ ১',
+        attendedWord: 'উপস্থিত',
+        outOfWord: 'মোট',
+        classesWord: 'ক্লাসের মধ্যে',
+        apply: 'প্রয়োগ',
+        dailyNoteLbl: 'দিনের নোট (যেমন: অসুস্থতা, কুইজ, ক্লাস বাতিল)',
+        dailyNotePh: 'এই তারিখের জন্য ছোট নোট লিখুন...',
+        save: 'সেভ',
+        notesIn: 'নোটসমূহ —',
+        noClassesYet: 'এখনো কোনো ক্লাস যোগ হয়নি — তারিখ ট্যাপ করুন',
+        canSkip: (n) => `নিশ্চিন্তে ${n}টি ক্লাস বাদ দিতে পারবেন`,
+        onEdge: 'সীমারেখায় আছেন — পরের ক্লাসটি করুন',
+        unrecoverable: 'অনুপস্থিতির পর ১০০% টার্গেট সম্ভব নয়',
+        needClasses: (n, t) => `${t}% পূরণ করতে পরের ${n}টি ক্লাস করুন`,
+        months: ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'],
+        weekdays: ['রবি','সোম','মঙ্গল','বুধ','বৃহঃ','শুক্র','শনি'],
+        addNewSubj: 'নতুন বিষয় যোগ করুন',
+        subjNameLbl: 'বিষয়ের নাম *',
+        subjNamePh: 'যেমন: লিনিয়ার অ্যালজেব্রা',
+        subjCodeLbl: 'কোর্স কোড বা সময়সূচি (ঐচ্ছিক)',
+        subjCodePh: 'যেমন: MATH 204 • রবি/মঙ্গল',
+        subjTargetLbl: 'এই বিষয়ের টার্গেট % (ঐচ্ছিক)',
+        globalDefault: 'সাধারণ টার্গেট',
+        accentColor: 'রঙ বাছাই করুন',
+        cancel: 'বাতিল',
+        saveSubj: 'সেভ করুন',
+        prefTitle: 'ব্যক্তিগত সেটিংস ও প্রাইভেসি',
+        globalTargetLbl: 'ব্যক্তিগত টার্গেট উপস্থিতি (%)',
+        globalTargetHint: 'সব বিষয়ের নিরাপদ অনুপস্থিতি ও প্রয়োজনীয় ক্লাস হিসাব করতে ব্যবহৃত হয়।',
+        pinLockLbl: 'PIN প্রাইভেসি লক',
+        pinLockSub: '৪-সংখ্যার PIN দিয়ে খাতা সুরক্ষিত রাখুন',
+        setPinLbl: '৪-সংখ্যার PIN সেট করুন',
+        savePin: 'PIN সেভ',
+        offlineSimLbl: 'অফলাইন মোড পরীক্ষা',
+        offlineSimSub: 'ইন্টারনেট ছাড়া লোকাল সেভ পরীক্ষা করুন',
+        backupLbl: 'ডেটা ও ব্যাকআপ',
+        exportJson: 'JSON ডাউনলোড',
+        loadSample: 'স্যাম্পল ডেটা লোড',
+        clearAll: 'সব বিষয় ও তথ্য মুছে ফেলুন',
+        done: 'সম্পন্ন',
+        gmailTitle: 'Gmail ক্লাউড সিঙ্ক',
+        gmailIntro: 'আপনার বিষয়, উপস্থিতির হিসাব ও নোট সিঙ্ক করে রাখতে Gmail অ্যাকাউন্ট দিয়ে সাইন ইন করুন।',
+        gmailEmailLbl: 'Gmail ঠিকানা',
+        gmailNameLbl: 'আপনার নাম',
+        continueGmail: 'Gmail দিয়ে এগিয়ে যান',
+        statusLbl: 'অবস্থা',
+        gmailSyncedDesc: 'Gmail ক্লাউড প্রোফাইলের সাথে সিঙ্ক হচ্ছে',
+        gmailOfflineDesc: 'অফলাইন — লোকাল স্টোরেজে সেভ হচ্ছে',
+        syncNow: 'এখনই সিঙ্ক করুন',
+        signOut: 'সাইন আউট',
+        pinTitle: 'প্রাইভেসি লক',
+        pinPrompt: 'খাতা দেখতে ৪-সংখ্যার PIN দিন',
+        clear: 'মুছুন',
+        forgotPin: 'PIN ভুলে গেছেন? লক সরিয়ে ফেলুন',
+        confirmDelSubj: (n) => `"${n}" এবং এর সব উপস্থিতি ও নোট মুছে ফেলবেন?`,
+        confirmReset: 'বর্তমান সব তথ্য বদলে স্যাম্পল ডেটা লোড করবেন?',
+        confirmClearAll: 'সব বিষয়, উপস্থিতি এবং নোট মুছে ফেলবেন? এটি ফেরানো যাবে না।',
+        confirmRemovePin: 'এই ব্রাউজার থেকে PIN লক সরিয়ে ফেলবেন?'
+      }
+    };
+
+    const STORAGE_KEY_LOCAL = 'cadence_attendance_local_v2';
+    const STORAGE_KEY_CLOUD_PREFIX = 'cadence_cloud_account_';
+    const STORAGE_KEY_AUTH = 'cadence_auth_profile_v2';
+    const COLORS = ['#0D9F6E', '#4F46E5', '#D97706', '#E11D48', '#0284C7', '#7C3AED', '#0F766E', '#334155'];
+
+    let state = {
+      lang: 'en',
+      targetPct: 75,
+      pinEnabled: false,
+      pinCode: '',
+      subjects: [],
+      logs: {},
+      notes: {}
+    };
+
+    let auth = { signedIn: false, email: '', name: '', offlineSimulated: false };
+
+    let ui = {
+      selectedSubjectId: null,
+      viewYear: new Date().getFullYear(),
+      viewMonth: new Date().getMonth(),
+      selectedDate: formatDateISO(new Date()),
+      editingSubjectId: null,
+      selectedColor: COLORS[0],
+      showCustomMark: false,
+      mobileDetailOpen: false,
+      todayCollapsed: false,
+      syncState: 'local',
+      unlocked: false
+    };
+
+    let pinBuffer = '';
+    const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('cadence_cloud_sync') : null;
+
+    function t(key) {
+      return I18N[state.lang]?.[key] ?? I18N.en[key] ?? key;
+    }
+
+    function formatDateISO(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function parseDateISO(str) {
+      const [y, m, d] = str.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function escapeHTML(str = '') {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => el.classList.remove('show'), 2300);
+    }
+
+    // =========================================================================
+    // Attendance Math
+    // =========================================================================
+    function getSubjectStats(subjectId) {
+      const subj = state.subjects.find(s => s.id === subjectId);
+      const target = (subj && subj.targetPct) ? subj.targetPct : state.targetPct;
+      const entries = Object.values(state.logs[subjectId] || {});
+
+      let attended = 0, total = 0, presentDays = 0, absentDays = 0, partialOrExtraDays = 0;
+      for (const e of entries) {
+        const a = Number(e.attended) || 0;
+        const tot = Number(e.total) || 0;
+        if (tot <= 0) continue;
+        attended += a; total += tot;
+        if (a === 1 && tot === 1) presentDays++;
+        else if (a === 0 && tot === 1) absentDays++;
+        else partialOrExtraDays++;
+      }
+
+      const pct = total > 0 ? Math.round((attended / total) * 100) : 100;
+      const exactPct = total > 0 ? (attended / total) * 100 : 100;
+      let status = 'safe';
+      if (total > 0) {
+        if (exactPct < target) status = 'low';
+        else if (exactPct < target + 5) status = 'near';
+      }
+
+      const r = target / 100;
+      let insight = '';
+      if (total === 0) {
+        insight = t('noClassesYet');
+      } else if (exactPct >= target) {
+        const canSkip = r > 0 ? Math.floor((attended / r) - total) : 99;
+        insight = canSkip >= 1 ? t('canSkip')(canSkip) : t('onEdge');
+      } else {
+        if (r >= 1) insight = t('unrecoverable');
+        else insight = t('needClasses')(Math.ceil((r * total - attended) / (1 - r)), target);
+      }
+
+      return {
+        attended: Number(attended.toFixed(2)),
+        total: Number(total.toFixed(2)),
+        presentDays, absentDays, partialOrExtraDays,
+        pct, target, status, insight
+      };
+    }
+
+    // =========================================================================
+    // Persistence & Sync
+    // =========================================================================
+    function isOnline() { return navigator.onLine && !auth.offlineSimulated; }
+
+    function updateSyncUI(mode) {
+      ui.syncState = mode;
+      document.getElementById('syncDot').className = 'sync-dot ' + mode;
+      const txt = document.getElementById('syncText');
+      if (mode === 'syncing') txt.textContent = t('syncing');
+      else if (mode === 'synced') txt.textContent = t('syncedGmail');
+      else txt.textContent = (auth.signedIn && !isOnline()) ? t('offlineLocal') : t('savedLocal');
+    }
+
+    let syncTimer = null;
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY_LOCAL, JSON.stringify(state));
+      if (auth.signedIn && auth.email && isOnline()) {
+        updateSyncUI('syncing');
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(() => {
+          localStorage.setItem(STORAGE_KEY_CLOUD_PREFIX + auth.email.toLowerCase(), JSON.stringify({ updatedAt: Date.now(), data: state }));
+          if (syncChannel) syncChannel.postMessage({ email: auth.email.toLowerCase(), data: state });
+          updateSyncUI('synced');
+        }, 500);
+      } else {
+        updateSyncUI('local');
+      }
+    }
+
+    function saveAuth() { localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(auth)); }
+
+    function createSampleData() {
+      const today = new Date();
+      const y = today.getFullYear(), m = today.getMonth();
+      const anchor = Math.max(14, Math.min(today.getDate(), 28));
+      const d = (n) => formatDateISO(new Date(y, m, Math.max(1, n)));
+
+      const s1 = 'subj_dsa', s2 = 'subj_linalg', s3 = 'subj_chem', s4 = 'subj_psych';
+      const subjects = [
+        { id: s1, name: 'Data Structures & Algorithms', code: 'CS 201 • Mon/Wed/Fri', color: '#0D9F6E', targetPct: null },
+        { id: s2, name: 'Linear Algebra', code: 'MATH 204 • Tue/Thu', color: '#4F46E5', targetPct: null },
+        { id: s3, name: 'Organic Chemistry', code: 'CHEM 112 • Lab & Lecture', color: '#E11D48', targetPct: null },
+        { id: s4, name: 'Cognitive Psychology', code: 'PSYC 105 • Seminar', color: '#D97706', targetPct: null }
+      ];
+
+      const logs = { [s1]: {}, [s2]: {}, [s3]: {}, [s4]: {} };
+      const notes = { [s1]: {}, [s2]: {}, [s3]: {}, [s4]: {} };
+
+      [anchor-13, anchor-11, anchor-9, anchor-6, anchor-4, anchor-2].forEach(x => { if (x>=1) logs[s1][d(x)] = { attended: 1, total: 1 }; });
+      if (anchor-7>=1) logs[s1][d(anchor-7)] = { attended: 0, total: 1 };
+      if (anchor-1>=1) logs[s1][d(anchor-1)] = { attended: 2, total: 2 };
+      notes[s1][d(anchor-7)] = 'Doctor appointment';
+      notes[s1][d(anchor-1)] = 'Double lab + lecture session';
+
+      [anchor-12, anchor-10, anchor-5, anchor-3].forEach(x => { if (x>=1) logs[s2][d(x)] = { attended: 1, total: 1 }; });
+      [anchor-8, anchor-1].forEach(x => { if (x>=1) logs[s2][d(x)] = { attended: 0, total: 1 }; });
+      if (anchor-6>=1) logs[s2][d(anchor-6)] = { attended: 0.5, total: 1 };
+      notes[s2][d(anchor-6)] = 'Arrived late — half attendance';
+
+      [anchor-12, anchor-9, anchor-5, anchor-2].forEach(x => { if (x>=1) logs[s3][d(x)] = { attended: 1, total: 1 }; });
+      [anchor-10, anchor-7, anchor-4].forEach(x => { if (x>=1) logs[s3][d(x)] = { attended: 0, total: 1 }; });
+      notes[s3][d(anchor-10)] = 'Sick day';
+
+      [anchor-11, anchor-7, anchor-3].forEach(x => { if (x>=1) logs[s4][d(x)] = { attended: 1, total: 1 }; });
+      notes[s4][d(anchor-3)] = 'Midterm essay discussion';
+
+      return { lang: state.lang || 'en', targetPct: 75, pinEnabled: false, pinCode: '', subjects, logs, notes };
+    }
+
+    function loadInitialState() {
+      const savedAuth = localStorage.getItem(STORAGE_KEY_AUTH);
+      if (savedAuth) { try { auth = { ...auth, ...JSON.parse(savedAuth) }; } catch {} }
+
+      let loaded = null;
+      if (auth.signedIn && auth.email && isOnline()) {
+        const c = localStorage.getItem(STORAGE_KEY_CLOUD_PREFIX + auth.email.toLowerCase());
+        if (c) { try { loaded = JSON.parse(c).data; } catch {} }
+      }
+      if (!loaded) {
+        const l = localStorage.getItem(STORAGE_KEY_LOCAL);
+        if (l) { try { loaded = JSON.parse(l); } catch {} }
+      }
+
+      if (loaded && Array.isArray(loaded.subjects)) {
+        state = {
+          lang: loaded.lang === 'bn' ? 'bn' : 'en',
+          targetPct: loaded.targetPct || 75,
+          pinEnabled: !!loaded.pinEnabled,
+          pinCode: loaded.pinCode || '',
+          subjects: loaded.subjects,
+          logs: loaded.logs || {},
+          notes: loaded.notes || {}
+        };
+      } else {
+        state = createSampleData();
+        localStorage.setItem(STORAGE_KEY_LOCAL, JSON.stringify(state));
+      }
+      ui.selectedSubjectId = state.subjects[0]?.id || null;
+      updateSyncUI(auth.signedIn && isOnline() ? 'synced' : 'local');
+    }
+
+    if (syncChannel) {
+      syncChannel.onmessage = (ev) => {
+        if (auth.signedIn && ev.data && ev.data.email === auth.email.toLowerCase() && isOnline()) {
+          state = ev.data.data;
+          if (!state.subjects.find(s => s.id === ui.selectedSubjectId)) ui.selectedSubjectId = state.subjects[0]?.id || null;
+          renderAll();
+        }
+      };
+    }
+
+    window.addEventListener('online', () => { if (auth.signedIn && !auth.offlineSimulated) saveState(); });
+    window.addEventListener('offline', () => updateSyncUI('local'));
+
+    // =========================================================================
+    // Language Switcher
+    // =========================================================================
+    window.setLanguage = function(lang) {
+      state.lang = lang === 'bn' ? 'bn' : 'en';
+      document.documentElement.lang = state.lang;
+      saveState();
+      renderAll();
+    };
+
+    // =========================================================================
+    // Rendering
+    // =========================================================================
+    function renderAll() {
+      renderStaticTexts();
+      renderTopbar();
+      renderSummary();
+      renderTodayPanel();
+      renderSubjectList();
+      renderCalendarPanel();
+    }
+
+    function renderStaticTexts() {
+      document.getElementById('langEnBtn').classList.toggle('active', state.lang === 'en');
+      document.getElementById('langBnBtn').classList.toggle('active', state.lang === 'bn');
+      document.getElementById('brandSubtitle').textContent = t('brandSub');
+      document.getElementById('subjectsTitle').textContent = t('mySubjects');
+      document.getElementById('subjectsSubtitle').textContent = t('subjectsSub');
+      document.getElementById('addBtnLabel').textContent = t('add');
+      document.getElementById('pinTitle').textContent = t('pinTitle');
+      document.getElementById('pinPromptText').textContent = t('pinPrompt');
+      document.getElementById('pinClearBtn').textContent = t('clear');
+      document.getElementById('forgotPinBtn').textContent = t('forgotPin');
+      updateSyncUI(ui.syncState);
+    }
+
+    function renderTopbar() {
+      document.getElementById('targetBadge').textContent = `${t('targetBadge')} ${state.targetPct}%`;
+      const avatar = document.getElementById('avatarCircle');
+      const label = document.getElementById('accountLabel');
+      if (auth.signedIn) {
+        avatar.textContent = (auth.name || auth.email || 'U')[0].toUpperCase();
+        label.textContent = auth.name ? auth.name.split(' ')[0] : auth.email.split('@')[0];
+      } else {
+        avatar.textContent = 'G';
+        label.textContent = t('signIn');
+      }
+      document.getElementById('lockNowBtn').style.display = (state.pinEnabled && state.pinCode.length === 4) ? 'inline-flex' : 'none';
+    }
+
+    function renderSummary() {
+      const el = document.getElementById('summaryStrip');
+      let totalAtt = 0, totalCond = 0, safeCount = 0, alertCount = 0;
+      state.subjects.forEach(s => {
+        const st = getSubjectStats(s.id);
+        totalAtt += st.attended; totalCond += st.total;
+        if (st.status === 'low') alertCount++; else safeCount++;
+      });
+      const overallPct = totalCond > 0 ? Math.round((totalAtt / totalCond) * 100) : 100;
+      const overallColor = overallPct >= state.targetPct ? 'var(--emerald)' : 'var(--coral)';
+      const now = new Date();
+      const dateStr = `${t('months')[now.getMonth()].slice(0,3)} ${now.getDate()}`;
+      const dayStr = t('weekdays')[now.getDay()];
+
+      el.innerHTML = `
+        <div class="summary-card">
+          <div class="summary-label">${t('overallAvg')}</div>
+          <div class="summary-value" style="color:${overallColor}">${overallPct}%</div>
+          <div class="summary-sub">${Number(totalAtt.toFixed(1))} / ${Number(totalCond.toFixed(1))} ${t('classesCount')}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">${t('activeSubjects')}</div>
+          <div class="summary-value">${state.subjects.length}</div>
+          <div class="summary-sub">${safeCount} ${t('onTargetCount')}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">${t('needsAttention')}</div>
+          <div class="summary-value" style="color:${alertCount > 0 ? 'var(--coral)' : 'var(--emerald)'}">${alertCount}</div>
+          <div class="summary-sub">${alertCount === 0 ? t('allSafe') : `${t('belowTarget')} (${state.targetPct}%)`}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">${t('today')}</div>
+          <div class="summary-value" style="font-size:1.12rem;line-height:1.45;">${escapeHTML(dateStr)}</div>
+          <div class="summary-sub">${escapeHTML(dayStr)}</div>
+        </div>
+      `;
+    }
+
+    // Quick Today's Classes Panel
+    function renderTodayPanel() {
+      const panel = document.getElementById('todayPanel');
+      if (state.subjects.length === 0) {
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'block';
+      const todayISO = formatDateISO(new Date());
+      let markedCount = 0;
+
+      const cardsHTML = state.subjects.map(s => {
+        const log = (state.logs[s.id] || {})[todayISO];
+        const st = getSubjectStats(s.id);
+        let cardCls = '';
+        const isP = log && log.attended === 1 && log.total === 1;
+        const isA = log && log.attended === 0 && log.total === 1;
+        const isH = log && log.attended === 0.5 && log.total === 1;
+        const isM = log && log.attended === 2 && log.total === 2;
+
+        if (log && log.total > 0) {
+          markedCount++;
+          if (isP) cardCls = 'marked-present';
+          else if (isA) cardCls = 'marked-absent';
+          else if (isM) cardCls = 'marked-multi';
+          else cardCls = 'marked-partial';
+        }
+
+        const pctColor = st.status === 'safe' ? 'var(--emerald)' : st.status === 'near' ? 'var(--amber)' : 'var(--coral)';
+
+        return `
+          <div class="today-card ${cardCls}">
+            <div class="today-card-top" onclick="openTodaySubjectCalendar('${s.id}')">
+              <div class="today-subj-title">
+                <span class="subject-color-dot" style="background:${s.color}"></span>
+                <span>${escapeHTML(s.name)}</span>
+              </div>
+              <span class="today-pct-tag" style="color:${pctColor}">${st.pct}%</span>
+            </div>
+            <div class="today-tap-row">
+              <button class="tap-btn ${isP ? 'active-p' : ''}" onclick="markTodayQuick('${s.id}', 1, 1)">${t('tapP')}</button>
+              <button class="tap-btn ${isA ? 'active-a' : ''}" onclick="markTodayQuick('${s.id}', 0, 1)">${t('tapA')}</button>
+              <button class="tap-btn ${isH ? 'active-h' : ''}" onclick="markTodayQuick('${s.id}', 0.5, 1)">${t('tapH')}</button>
+              <button class="tap-btn ${isM ? 'active-m' : ''}" onclick="markTodayQuick('${s.id}', 2, 2)">${t('tapM')}</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      panel.innerHTML = `
+        <div class="today-header ${ui.todayCollapsed ? 'collapsed' : ''}">
+          <div class="today-title-wrap">
+            <div class="today-icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+            </div>
+            <div>
+              <div style="font-size:0.98rem;font-weight:800;">${t('todaysClasses')}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">${t('todaysClassesSub')}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="today-count-pill">${markedCount}/${state.subjects.length} ${t('marked')}</span>
+            <button class="btn btn-surface" style="padding:6px 11px;font-size:0.76rem;" onclick="toggleTodayCollapse()">
+              ${ui.todayCollapsed ? t('show') : t('hide')}
+            </button>
+          </div>
+        </div>
+        ${ui.todayCollapsed ? '' : `<div class="today-grid">${cardsHTML}</div>`}
+      `;
+    }
+
+    let dragSrcIndex = null;
+    function renderSubjectList() {
+      const container = document.getElementById('subjectList');
+      if (state.subjects.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:1.8rem;margin-bottom:8px;">📚</div>
+            <div style="font-weight:700;color:var(--text);margin-bottom:4px;">${t('noSubjects')}</div>
+            <div style="font-size:0.82rem;margin-bottom:14px;">${t('noSubjectsSub')}</div>
+            <button class="btn btn-primary" onclick="openSubjectModal()">${t('addFirstSubj')}</button>
+          </div>
+        `;
+        return;
+      }
+
+      const r = 22, circ = 2 * Math.PI * r;
+      container.innerHTML = state.subjects.map((subj, idx) => {
+        const st = getSubjectStats(subj.id);
+        const offset = circ - (Math.min(100, Math.max(0, st.pct)) / 100) * circ;
+        const ringColor = st.status === 'safe' ? 'var(--emerald)' : st.status === 'near' ? 'var(--amber)' : 'var(--coral)';
+        const statusCls = st.status === 'safe' ? 'status-safe' : st.status === 'near' ? 'status-near' : 'status-low';
+
+        return `
+          <div class="subject-card ${subj.id === ui.selectedSubjectId ? 'active' : ''}"
+               draggable="true" data-index="${idx}" onclick="selectSubject('${subj.id}')">
+            <div class="drag-handle" onclick="event.stopPropagation()">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <circle cx="5" cy="3.5" r="1.2"/><circle cx="11" cy="3.5" r="1.2"/>
+                <circle cx="5" cy="8" r="1.2"/><circle cx="11" cy="8" r="1.2"/>
+                <circle cx="5" cy="12.5" r="1.2"/><circle cx="11" cy="12.5" r="1.2"/>
+              </svg>
+            </div>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 56 56">
+                <circle class="ring-bg" cx="28" cy="28" r="${r}"></circle>
+                <circle class="ring-fg" cx="28" cy="28" r="${r}" stroke="${ringColor}"
+                  stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"></circle>
+              </svg>
+              <span class="ring-text" style="color:${ringColor}">${st.pct}%</span>
+            </div>
+            <div class="subject-info">
+              <div class="subject-name-row">
+                <span class="subject-color-dot" style="background:${subj.color}"></span>
+                <span class="subject-name">${escapeHTML(subj.name)}</span>
+              </div>
+              <div class="subject-meta">
+                <span>${st.attended}/${st.total} ${t('classesCount')}</span>
+                ${subj.code ? `<span>• ${escapeHTML(subj.code)}</span>` : ''}
+              </div>
+              <div class="status-badge ${statusCls}">${escapeHTML(st.insight)}</div>
+            </div>
+            <div class="subject-actions" onclick="event.stopPropagation()">
+              <div class="reorder-row">
+                <button class="mini-btn" ${idx === 0 ? 'disabled style="opacity:0.3;pointer-events:none;"' : ''} onclick="moveSubject(${idx}, -1)">↑</button>
+                <button class="mini-btn" ${idx === state.subjects.length - 1 ? 'disabled style="opacity:0.3;pointer-events:none;"' : ''} onclick="moveSubject(${idx}, 1)">↓</button>
+              </div>
+              <div class="reorder-row">
+                <button class="mini-btn" onclick="openSubjectModal('${subj.id}')">✎</button>
+                <button class="mini-btn danger" onclick="deleteSubject('${subj.id}')">🗑</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.subject-card').forEach(card => {
+        card.addEventListener('dragstart', (e) => { dragSrcIndex = Number(card.dataset.index); card.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+        card.addEventListener('dragend', () => { card.classList.remove('dragging'); container.querySelectorAll('.subject-card').forEach(c => c.classList.remove('drag-over')); });
+        card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
+        card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          const targetIdx = Number(card.dataset.index);
+          if (dragSrcIndex !== null && dragSrcIndex !== targetIdx) {
+            const [moved] = state.subjects.splice(dragSrcIndex, 1);
+            state.subjects.splice(targetIdx, 0, moved);
+            saveState(); renderSubjectList(); renderTodayPanel();
+          }
+        });
+      });
+    }
+
+    function renderCalendarPanel() {
+      const panel = document.getElementById('calendarPanel');
+      document.getElementById('workspace').classList.toggle('mobile-detail', ui.mobileDetailOpen);
+
+      const subj = state.subjects.find(s => s.id === ui.selectedSubjectId);
+      if (!subj) {
+        panel.innerHTML = `
+          <div class="empty-state" style="padding:72px 24px;">
+            <div style="font-size:2rem;margin-bottom:10px;">🗓️</div>
+            <div style="font-weight:700;color:var(--text);margin-bottom:4px;">${t('selectSubjTitle')}</div>
+            <div style="font-size:0.84rem;">${t('selectSubjSub')}</div>
+          </div>
+        `;
+        return;
+      }
+
+      const st = getSubjectStats(subj.id);
+      const subjLogs = state.logs[subj.id] || {};
+      const subjNotes = state.notes[subj.id] || {};
+      const year = ui.viewYear, month = ui.viewMonth;
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const todayISO = formatDateISO(new Date());
+
+      let dayCellsHTML = '';
+      for (let i = 0; i < firstDay; i++) dayCellsHTML += `<div class="day-cell empty"></div>`;
+
+      const monthNotesList = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateISO = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const log = subjLogs[dateISO];
+        const note = subjNotes[dateISO];
+        if (note) monthNotesList.push({ dateISO, day, note });
+
+        let statusClass = '', badgeHTML = '';
+        if (log && log.total > 0) {
+          if (log.attended === 1 && log.total === 1) { statusClass = 'status-present'; badgeHTML = `<span class="day-badge badge-present">P • 1</span>`; }
+          else if (log.attended === 0 && log.total === 1) { statusClass = 'status-absent'; badgeHTML = `<span class="day-badge badge-absent">A • 0</span>`; }
+          else if (log.attended > 1 && log.attended === log.total) { statusClass = 'status-multi'; badgeHTML = `<span class="day-badge badge-multi">${log.attended}×</span>`; }
+          else { statusClass = 'status-partial'; badgeHTML = `<span class="day-badge badge-partial">${log.attended}/${log.total}</span>`; }
+        }
+
+        dayCellsHTML += `
+          <button class="day-cell ${statusClass} ${dateISO === todayISO ? 'today' : ''} ${dateISO === ui.selectedDate ? 'selected' : ''}"
+                  onclick="selectCalendarDate('${dateISO}')">
+            <div class="day-top">
+              <span class="day-num">${day}</span>
+              ${note ? `<span class="note-pin" title="${escapeHTML(note)}">📌</span>` : ''}
+            </div>
+            ${badgeHTML}
+          </button>
+        `;
+      }
+
+      const selDateObj = parseDateISO(ui.selectedDate);
+      const selFormatted = `${t('weekdays')[selDateObj.getDay()]}, ${t('months')[selDateObj.getMonth()]} ${selDateObj.getDate()}, ${selDateObj.getFullYear()}`;
+      const selLog = subjLogs[ui.selectedDate] || null;
+      const selNote = subjNotes[ui.selectedDate] || '';
+      const isP = selLog && selLog.attended === 1 && selLog.total === 1;
+      const isA = selLog && selLog.attended === 0 && selLog.total === 1;
+      const isH = selLog && selLog.attended === 0.5 && selLog.total === 1;
+      const isD = selLog && selLog.attended === 2 && selLog.total === 2;
+      const pctColor = st.status === 'safe' ? 'var(--emerald)' : st.status === 'near' ? 'var(--amber)' : 'var(--coral)';
+
+      panel.innerHTML = `
+        <div class="calendar-head">
+          <div class="calendar-title-row">
+            <div class="subject-hero">
+              <button class="btn btn-surface btn-icon mobile-back-btn" onclick="closeMobileDetail()">←</button>
+              <div class="subject-hero-badge" style="background:${subj.color}"></div>
+              <div>
+                <h2>${escapeHTML(subj.name)}</h2>
+                <div class="subject-hero-sub">${subj.code ? escapeHTML(subj.code) + ' • ' : ''}${t('targetBadge')}: ${st.target}%</div>
+              </div>
+            </div>
+            <button class="btn btn-surface" onclick="openSubjectModal('${subj.id}')">${t('editSubject')}</button>
+          </div>
+
+          <div class="subject-stats-grid">
+            <div class="stat-box"><div class="stat-box-label">${t('overallPct')}</div><div class="stat-box-val" style="color:${pctColor}">${st.pct}%</div></div>
+            <div class="stat-box"><div class="stat-box-label">${t('present')}</div><div class="stat-box-val" style="color:var(--emerald)">${st.presentDays}</div></div>
+            <div class="stat-box"><div class="stat-box-label">${t('absent')}</div><div class="stat-box-val" style="color:var(--coral)">${st.absentDays}</div></div>
+            <div class="stat-box"><div class="stat-box-label">${t('partialExtra')}</div><div class="stat-box-val" style="color:var(--indigo)">${st.partialOrExtraDays}</div></div>
+          </div>
+
+          <div class="insight-banner ${st.status}">
+            <span>${escapeHTML(st.insight)}</span>
+            <span style="font-family:var(--font-mono);font-size:0.78rem;">${st.attended} / ${st.total} ${t('attendedLabel')}</span>
+          </div>
+        </div>
+
+        <div class="calendar-body">
+          <div class="month-nav">
+            <div class="month-label">${t('months')[month]} ${year}</div>
+            <div class="month-controls">
+              <button class="btn btn-surface btn-icon" onclick="changeMonth(-1)">‹</button>
+              <button class="btn btn-surface" onclick="jumpToToday()" style="padding:7px 12px;font-size:0.78rem;">${t('todayBtn')}</button>
+              <button class="btn btn-surface btn-icon" onclick="changeMonth(1)">›</button>
+            </div>
+          </div>
+
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-dot" style="background:var(--emerald)"></span>${t('legendP')}</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--coral)"></span>${t('legendA')}</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span>${t('legendH')}</span>
+            <span class="legend-item"><span class="legend-dot" style="background:var(--indigo)"></span>${t('legendM')}</span>
+          </div>
+
+          <div class="weekdays-grid">${t('weekdays').map(d => `<div class="weekday-cell">${d}</div>`).join('')}</div>
+          <div class="days-grid">${dayCellsHTML}</div>
+
+          <div class="day-inspector">
+            <div class="inspector-header">
+              <div>
+                <div style="font-size:0.71rem;font-weight:700;text-transform:uppercase;color:var(--text-soft);">${t('selectedDay')}</div>
+                <div class="inspector-date">${selFormatted}</div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-surface" style="padding:6px 10px;font-size:0.76rem;" onclick="toggleCustomMark()">
+                  ${ui.showCustomMark ? t('hideCustom') : t('customCount')}
+                </button>
+                ${selLog ? `<button class="btn btn-surface" style="padding:6px 10px;font-size:0.76rem;color:var(--coral);" onclick="clearDayAttendance('${ui.selectedDate}')">${t('clearMark')}</button>` : ''}
+              </div>
+            </div>
+
+            <div class="quick-mark-row">
+              <button class="mark-chip ${isP ? 'active-present' : ''}" onclick="markDay('${ui.selectedDate}', 1, 1)">${t('btnP')}</button>
+              <button class="mark-chip ${isA ? 'active-absent' : ''}" onclick="markDay('${ui.selectedDate}', 0, 1)">${t('btnA')}</button>
+              <button class="mark-chip ${isH ? 'active-partial' : ''}" onclick="markDay('${ui.selectedDate}', 0.5, 1)">${t('btnH')}</button>
+              <button class="mark-chip ${isD ? 'active-multi' : ''}" onclick="markDay('${ui.selectedDate}', 2, 2)">${t('btnM')}</button>
+              <button class="mark-chip" onclick="markDay('${ui.selectedDate}', 1, 2)">${t('btn1of2')}</button>
+            </div>
+
+            ${ui.showCustomMark ? `
+              <div class="custom-mark-box">
+                <span>${t('attendedWord')}</span>
+                <input id="customAttendedInput" class="custom-num-input" type="number" step="0.5" min="0" value="${selLog ? selLog.attended : 1}">
+                <span>${t('outOfWord')}</span>
+                <input id="customTotalInput" class="custom-num-input" type="number" step="0.5" min="0.5" value="${selLog ? selLog.total : 1}">
+                <span>${t('classesWord')}</span>
+                <button class="btn btn-primary" style="padding:6px 12px;font-size:0.78rem;margin-left:auto;" onclick="applyCustomMark('${ui.selectedDate}')">${t('apply')}</button>
+              </div>
+            ` : ''}
+
+            <div class="note-box">
+              <label class="form-label">${t('dailyNoteLbl')}</label>
+              <div class="note-input-row">
+                <input id="dayNoteInput" class="input-field" type="text" placeholder="${t('dailyNotePh')}" value="${escapeHTML(selNote)}" maxlength="120"
+                       onkeydown="if(event.key==='Enter'){ event.preventDefault(); saveDayNote('${ui.selectedDate}'); }" />
+                <button class="btn btn-primary" onclick="saveDayNote('${ui.selectedDate}')">${t('save')}</button>
+                ${selNote ? `<button class="btn btn-danger" onclick="deleteDayNote('${ui.selectedDate}')">🗑</button>` : ''}
+              </div>
+            </div>
+          </div>
+
+          ${monthNotesList.length > 0 ? `
+            <div class="month-notes">
+              <div class="month-notes-title">${t('notesIn')} ${t('months')[month]} (${monthNotesList.length})</div>
+              <div class="note-list">
+                ${monthNotesList.map(item => `
+                  <div class="note-list-item" onclick="selectCalendarDate('${item.dateISO}')">
+                    <span class="note-date-tag">${t('months')[month].slice(0,3)} ${String(item.day).padStart(2,'0')}</span>
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(item.note)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // Actions
+    // =========================================================================
+    window.markTodayQuick = function(subjId, attended, total) {
+      const todayISO = formatDateISO(new Date());
+      if (!state.logs[subjId]) state.logs[subjId] = {};
+      const existing = state.logs[subjId][todayISO];
+      // Tap same active button again to toggle off
+      if (existing && existing.attended === attended && existing.total === total) {
+        delete state.logs[subjId][todayISO];
+      } else {
+        state.logs[subjId][todayISO] = { attended, total };
+      }
+      saveState();
+      renderSummary();
+      renderTodayPanel();
+      renderSubjectList();
+      if (ui.selectedSubjectId === subjId) renderCalendarPanel();
+    };
+
+    window.toggleTodayCollapse = function() {
+      ui.todayCollapsed = !ui.todayCollapsed;
+      renderTodayPanel();
+    };
+
+    window.openTodaySubjectCalendar = function(id) {
+      ui.selectedSubjectId = id;
+      ui.mobileDetailOpen = true;
+      jumpToToday();
+      renderSubjectList();
+    };
+
+    window.selectSubject = function(id) {
+      ui.selectedSubjectId = id;
+      ui.mobileDetailOpen = true;
+      renderSubjectList();
+      renderCalendarPanel();
+    };
+
+    window.closeMobileDetail = function() {
+      ui.mobileDetailOpen = false;
+      renderCalendarPanel();
+    };
+
+    window.moveSubject = function(index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= state.subjects.length) return;
+      const [item] = state.subjects.splice(index, 1);
+      state.subjects.splice(target, 0, item);
+      saveState();
+      renderTodayPanel();
+      renderSubjectList();
+    };
+
+    window.deleteSubject = function(id) {
+      const subj = state.subjects.find(s => s.id === id);
+      if (!subj || !confirm(t('confirmDelSubj')(subj.name))) return;
+      state.subjects = state.subjects.filter(s => s.id !== id);
+      delete state.logs[id];
+      delete state.notes[id];
+      if (ui.selectedSubjectId === id) {
+        ui.selectedSubjectId = state.subjects[0]?.id || null;
+        ui.mobileDetailOpen = false;
+      }
+      saveState();
+      renderAll();
+    };
+
+    window.selectCalendarDate = function(dateISO) {
+      ui.selectedDate = dateISO;
+      const d = parseDateISO(dateISO);
+      ui.viewYear = d.getFullYear();
+      ui.viewMonth = d.getMonth();
+      renderCalendarPanel();
+    };
+
+    window.changeMonth = function(delta) {
+      let m = ui.viewMonth + delta, y = ui.viewYear;
+      if (m < 0) { m = 11; y--; }
+      if (m > 11) { m = 0; y++; }
+      ui.viewMonth = m; ui.viewYear = y;
+      ui.selectedDate = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+      renderCalendarPanel();
+    };
+
+    window.jumpToToday = function() {
+      const now = new Date();
+      ui.viewYear = now.getFullYear();
+      ui.viewMonth = now.getMonth();
+      ui.selectedDate = formatDateISO(now);
+      renderCalendarPanel();
+    };
+
+    window.markDay = function(dateISO, attended, total) {
+      const id = ui.selectedSubjectId;
+      if (!id) return;
+      if (!state.logs[id]) state.logs[id] = {};
+      state.logs[id][dateISO] = { attended: Number(attended), total: Number(total) };
+      saveState();
+      renderSummary();
+      renderTodayPanel();
+      renderSubjectList();
+      renderCalendarPanel();
+    };
+
+    window.clearDayAttendance = function(dateISO) {
+      const id = ui.selectedSubjectId;
+      if (!id || !state.logs[id]) return;
+      delete state.logs[id][dateISO];
+      saveState();
+      renderSummary();
+      renderTodayPanel();
+      renderSubjectList();
+      renderCalendarPanel();
+    };
+
+    window.toggleCustomMark = function() { ui.showCustomMark = !ui.showCustomMark; renderCalendarPanel(); };
+
+    window.applyCustomMark = function(dateISO) {
+      const att = parseFloat(document.getElementById('customAttendedInput').value);
+      const tot = parseFloat(document.getElementById('customTotalInput').value);
+      if (isNaN(att) || isNaN(tot) || tot <= 0 || att < 0 || att > tot) {
+        showToast('Enter valid numbers (Attended ≤ Total)');
+        return;
+      }
+      markDay(dateISO, att, tot);
+    };
+
+    window.saveDayNote = function(dateISO) {
+      const id = ui.selectedSubjectId;
+      if (!id) return;
+      const val = document.getElementById('dayNoteInput').value.trim();
+      if (!state.notes[id]) state.notes[id] = {};
+      if (val) state.notes[id][dateISO] = val;
+      else delete state.notes[id][dateISO];
+      saveState();
+      renderCalendarPanel();
+      showToast('✓');
+    };
+
+    window.deleteDayNote = function(dateISO) {
+      const id = ui.selectedSubjectId;
+      if (!id || !state.notes[id]) return;
+      delete state.notes[id][dateISO];
+      saveState();
+      renderCalendarPanel();
+    };
+
+    // =========================================================================
+    // Modals
+    // =========================================================================
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
+
+    window.openSubjectModal = function(editId = null) {
+      ui.editingSubjectId = editId;
+      document.getElementById('lblSubjName').textContent = t('subjNameLbl');
+      document.getElementById('subjNameInput').placeholder = t('subjNamePh');
+      document.getElementById('lblSubjCode').textContent = t('subjCodeLbl');
+      document.getElementById('subjCodeInput').placeholder = t('subjCodePh');
+      document.getElementById('lblSubjTarget').textContent = t('subjTargetLbl');
+      document.getElementById('lblAccentColor').textContent = t('accentColor');
+      document.getElementById('subjCancelBtn').textContent = t('cancel');
+      document.getElementById('subjSaveBtn').textContent = t('saveSubj');
+
+      const nameIn = document.getElementById('subjNameInput');
+      const codeIn = document.getElementById('subjCodeInput');
+      const targIn = document.getElementById('subjTargetInput');
+      targIn.placeholder = `${t('globalDefault')} (${state.targetPct}%)`;
+
+      if (editId) {
+        const s = state.subjects.find(x => x.id === editId);
+        document.getElementById('subjectModalTitle').textContent = t('editSubject');
+        nameIn.value = s.name; codeIn.value = s.code || ''; targIn.value = s.targetPct || '';
+        ui.selectedColor = s.color;
+      } else {
+        document.getElementById('subjectModalTitle').textContent = t('addNewSubj');
+        nameIn.value = ''; codeIn.value = ''; targIn.value = '';
+        ui.selectedColor = COLORS[state.subjects.length % COLORS.length];
+      }
+      renderColorSwatches();
+      openModal('subjectModal');
+      setTimeout(() => nameIn.focus(), 60);
+    };
+
+    function renderColorSwatches() {
+      document.getElementById('colorSwatches').innerHTML = COLORS.map(c =>
+        `<button type="button" class="color-swatch ${ui.selectedColor === c ? 'selected' : ''}" style="background:${c}" onclick="pickColor('${c}')"></button>`
+      ).join('');
+    }
+    window.pickColor = function(c) { ui.selectedColor = c; renderColorSwatches(); };
+
+    document.getElementById('subjectForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('subjNameInput').value.trim();
+      const code = document.getElementById('subjCodeInput').value.trim();
+      const tv = document.getElementById('subjTargetInput').value.trim();
+      const targetPct = tv ? Math.max(1, Math.min(100, Number(tv))) : null;
+      if (!name) return;
+
+      if (ui.editingSubjectId) {
+        const s = state.subjects.find(x => x.id === ui.editingSubjectId);
+        if (s) { s.name = name; s.code = code; s.color = ui.selectedColor; s.targetPct = targetPct; }
+      } else {
+        const newId = 'subj_' + Date.now().toString(36);
+        state.subjects.push({ id: newId, name, code, color: ui.selectedColor, targetPct });
+        state.logs[newId] = {}; state.notes[newId] = {};
+        ui.selectedSubjectId = newId;
+      }
+      saveState();
+      closeModal('subjectModal');
+      renderAll();
+    });
+
+    function openSettingsModal() {
+      document.getElementById('settingsModalTitle').textContent = t('prefTitle');
+      document.getElementById('lblGlobalTarget').textContent = t('globalTargetLbl');
+      document.getElementById('globalTargetHint').textContent = t('globalTargetHint');
+      document.getElementById('lblPinLock').textContent = t('pinLockLbl');
+      document.getElementById('pinStatusSub').textContent = t('pinLockSub');
+      document.getElementById('lblSetPin').textContent = t('setPinLbl');
+      document.getElementById('savePinBtn').textContent = t('savePin');
+      document.getElementById('lblOfflineSim').textContent = t('offlineSimLbl');
+      document.getElementById('lblOfflineSub').textContent = t('offlineSimSub');
+      document.getElementById('lblBackup').textContent = t('backupLbl');
+      document.getElementById('exportDataBtn').textContent = t('exportJson');
+      document.getElementById('resetSampleBtn').textContent = t('loadSample');
+      document.getElementById('clearAllBtn').textContent = t('clearAll');
+      document.getElementById('saveSettingsBtn').textContent = t('done');
+
+      document.getElementById('globalTargetInput').value = state.targetPct;
+      document.getElementById('togglePinBtn').classList.toggle('on', state.pinEnabled);
+      document.getElementById('pinSetupBox').style.display = state.pinEnabled ? 'block' : 'none';
+      document.getElementById('newPinInput').value = state.pinCode || '';
+      document.getElementById('toggleOfflineBtn').classList.toggle('on', auth.offlineSimulated);
+      openModal('settingsModal');
+    }
+
+    document.getElementById('togglePinBtn').addEventListener('click', () => {
+      state.pinEnabled = !state.pinEnabled;
+      document.getElementById('togglePinBtn').classList.toggle('on', state.pinEnabled);
+      document.getElementById('pinSetupBox').style.display = state.pinEnabled ? 'block' : 'none';
+      if (!state.pinEnabled) { saveState(); renderTopbar(); }
+    });
+
+    document.getElementById('savePinBtn').addEventListener('click', () => {
+      const pin = document.getElementById('newPinInput').value.trim();
+      if (!/^\d{4}$/.test(pin)) { showToast('4 digits required'); return; }
+      state.pinCode = pin; state.pinEnabled = true; ui.unlocked = true;
+      saveState(); renderTopbar(); showToast('PIN ✓');
+    });
+
+    document.getElementById('toggleOfflineBtn').addEventListener('click', () => {
+      auth.offlineSimulated = !auth.offlineSimulated;
+      document.getElementById('toggleOfflineBtn').classList.toggle('on', auth.offlineSimulated);
+      saveAuth();
+      if (auth.offlineSimulated) updateSyncUI('local'); else saveState();
+    });
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+      const val = Number(document.getElementById('globalTargetInput').value);
+      if (val >= 1 && val <= 100) state.targetPct = Math.round(val);
+      if (state.pinEnabled && !/^\d{4}$/.test(state.pinCode)) state.pinEnabled = false;
+      saveState(); closeModal('settingsModal'); renderAll();
+    });
+
+    document.getElementById('exportDataBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `cadence-attendance-${formatDateISO(new Date())}.json`; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('resetSampleBtn').addEventListener('click', () => {
+      if (!confirm(t('confirmReset'))) return;
+      state = { ...createSampleData(), pinEnabled: state.pinEnabled, pinCode: state.pinCode };
+      ui.selectedSubjectId = state.subjects[0]?.id || null;
+      saveState(); closeModal('settingsModal'); renderAll();
+    });
+
+    document.getElementById('clearAllBtn').addEventListener('click', () => {
+      if (!confirm(t('confirmClearAll'))) return;
+      state.subjects = []; state.logs = {}; state.notes = {};
+      ui.selectedSubjectId = null; ui.mobileDetailOpen = false;
+      saveState(); closeModal('settingsModal'); renderAll();
+    });
+
+    function openAccountModal() {
+      document.getElementById('accountModalTitle').textContent = t('gmailTitle');
+      const body = document.getElementById('accountModalBody');
+      if (auth.signedIn) {
+        body.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:14px;border:1px solid var(--border);">
+            <div class="avatar-circle" style="width:42px;height:42px;font-size:1rem;">${escapeHTML((auth.name || auth.email)[0].toUpperCase())}</div>
+            <div style="min-width:0;flex:1;">
+              <div style="font-weight:700;">${escapeHTML(auth.name || 'Student')}</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;">${escapeHTML(auth.email)}</div>
+            </div>
+          </div>
+          <div style="font-size:0.82rem;color:var(--text-muted);">${t('statusLbl')}: <strong>${isOnline() ? t('gmailSyncedDesc') : t('gmailOfflineDesc')}</strong></div>
+          <button class="btn btn-surface" onclick="forceCloudSync()">${t('syncNow')}</button>
+          <button class="btn btn-danger" onclick="signOutGmail()">${t('signOut')}</button>
+        `;
+      } else {
+        body.innerHTML = `
+          <p style="font-size:0.84rem;color:var(--text-muted);">${t('gmailIntro')}</p>
+          <div class="form-group"><label class="form-label">${t('gmailEmailLbl')}</label><input id="gmailInput" class="input-field" type="email" value="alex.student@gmail.com" /></div>
+          <div class="form-group"><label class="form-label">${t('gmailNameLbl')}</label><input id="gmailNameInput" class="input-field" type="text" value="Alex Rivera" /></div>
+          <button class="google-btn" onclick="signInGmail()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"/><path fill="#FBBC05" d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 8.9 0 11 0 13.3s.6 4.4 1.6 6.3l3.7-2.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 21.4 7.4 24 12 24z"/></svg>
+            ${t('continueGmail')}
+          </button>
+        `;
+      }
+      openModal('accountModal');
+    }
+
+    window.signInGmail = function() {
+      const email = document.getElementById('gmailInput').value.trim();
+      const name = document.getElementById('gmailNameInput').value.trim();
+      if (!email || !email.includes('@')) return;
+      auth.signedIn = true; auth.email = email; auth.name = name || email.split('@')[0];
+      saveAuth();
+      const existing = localStorage.getItem(STORAGE_KEY_CLOUD_PREFIX + email.toLowerCase());
+      if (existing && isOnline()) {
+        try {
+          const parsed = JSON.parse(existing).data;
+          if (parsed && Array.isArray(parsed.subjects) && confirm('Restore synced Gmail cloud data?')) {
+            state = parsed; ui.selectedSubjectId = state.subjects[0]?.id || null;
+          }
+        } catch {}
+      }
+      saveState(); closeModal('accountModal'); renderAll();
+    };
+
+    window.forceCloudSync = function() { if (isOnline()) saveState(); };
+    window.signOutGmail = function() {
+      auth.signedIn = false; auth.email = ''; auth.name = '';
+      saveAuth(); updateSyncUI('local'); closeModal('accountModal'); renderTopbar();
+    };
+
+    // PIN Lock
+    function showPinLock() { pinBuffer = ''; updatePinDots(); document.getElementById('pinOverlay').classList.add('open'); }
+    function hidePinLock() { ui.unlocked = true; document.getElementById('pinOverlay').classList.remove('open'); }
+    function updatePinDots() { document.querySelectorAll('#pinDots .pin-dot').forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length)); }
+
+    document.querySelectorAll('.key-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        if (key === 'clear') pinBuffer = '';
+        else if (key === 'back') pinBuffer = pinBuffer.slice(0, -1);
+        else if (pinBuffer.length < 4) pinBuffer += key;
+        updatePinDots();
+        if (pinBuffer.length === 4) {
+          if (pinBuffer === state.pinCode) hidePinLock();
+          else {
+            const dots = document.getElementById('pinDots');
+            dots.classList.add('shake');
+            setTimeout(() => { dots.classList.remove('shake'); pinBuffer = ''; updatePinDots(); }, 350);
+          }
+        }
+      });
+    });
+
+    document.getElementById('forgotPinBtn').addEventListener('click', () => {
+      if (confirm(t('confirmRemovePin'))) { state.pinEnabled = false; state.pinCode = ''; saveState(); hidePinLock(); renderTopbar(); }
+    });
+
+    // Events & Boot
+    document.getElementById('addSubjectBtn').addEventListener('click', () => openSubjectModal());
+    document.getElementById('fabAddBtn').addEventListener('click', () => openSubjectModal());
+    document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+    document.getElementById('accountBtn').addEventListener('click', openAccountModal);
+    document.getElementById('syncStatusBtn').addEventListener('click', openAccountModal);
+    document.getElementById('lockNowBtn').addEventListener('click', showPinLock);
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); }));
+
+    loadInitialState();
+    renderAll();
+    if (state.pinEnabled && /^\d{4}$/.test(state.pinCode) && !ui.unlocked) showPinLock();
+  </script>
+</body>
+</html>
